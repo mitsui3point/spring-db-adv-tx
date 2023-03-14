@@ -8,6 +8,7 @@ import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.UnexpectedRollbackException;
 import org.springframework.transaction.interceptor.DefaultTransactionAttribute;
@@ -135,11 +136,31 @@ public class BasicTxTest {
         TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute());
 
         log.info("내부 트랜잭션 롤백");
-        txManager.rollback(inner);//rollback-only 표시
+        txManager.rollback(inner);//rollback-only 표시, 실제 롤백하지 않음
 
         log.info("외부 트랜잭션 커밋");
-        assertThatThrownBy(() -> txManager.commit(outer))
+        assertThatThrownBy(() -> txManager.commit(outer))//rollbackOnly=true 를 식별 후 트랜잭션을 롤백시킴
                 .isInstanceOf(UnexpectedRollbackException.class);
 
     }
+
+    @Test
+    void inner_rollback_requires_new() {
+        log.info("외부 트랜잭션 시작");
+        TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+        log.info("outer.isNewTransaction()={}", outer.isNewTransaction());//true
+
+        log.info("내부 트랜잭션 시작");
+        DefaultTransactionAttribute definition = new DefaultTransactionAttribute();
+        definition.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);//default;PROPAGATION_REQUIRED(기존 트랜잭션 있으면 사용), PROPAGATION_REQUIRES_NEW(기존 트랜잭션 여부 상관없이 새로운 트랜잭션생성)
+        TransactionStatus inner = txManager.getTransaction(definition);//Suspending current transaction, creating new transaction with name [null]
+        log.info("inner.isNewTransaction()={}", inner.isNewTransaction());//true
+
+        log.info("내부 트랜잭션 롤백");
+        txManager.rollback(inner);//
+
+        log.info("외부 트랜잭션 커밋");
+        txManager.commit(outer);
+    }
+
 }
