@@ -107,4 +107,19 @@ public class BasicTxTest {
         txManager.commit(outer);//실제 물리 transaction commit(outer.isNewTransaction(); 신규 트랜잭션 -> true 이어야 물리적 commit 반영)
 
     }
+    @Test
+    void outer_rollback() {
+        log.info("외부 트랜잭션 시작");
+        TransactionStatus outer = txManager.getTransaction(new DefaultTransactionAttribute());
+
+        log.info("내부 트랜잭션 시작");
+        TransactionStatus inner = txManager.getTransaction(new DefaultTransactionAttribute());
+
+        log.info("내부 트랜잭션 커밋");
+        txManager.commit(inner);
+
+        log.info("외부 트랜잭션 롤백");
+        txManager.rollback(outer);
+
+    }
 }
