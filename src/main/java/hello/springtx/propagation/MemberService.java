@@ -36,6 +36,19 @@ public class MemberService {
                 logInfo -> logRepository.saveTx(logInfo));
     }
 
+    @Transactional
+    public void joinV2_OnOnOn(String username) {
+        join(username,
+                member -> memberRepository.saveTx(member),
+                logInfo -> {
+                    try {
+                        logRepository.saveTx(logInfo);
+                    } catch (RuntimeException e) {
+                        log.info("log 저장에 실패했습니다. logMessage={}", logInfo.getMessage());
+                        log.info("정상 흐름 변환");
+                    }
+                });
+    }
 
     private void join(String username,
                       Callback<Member> memberRepositoryCallback,
