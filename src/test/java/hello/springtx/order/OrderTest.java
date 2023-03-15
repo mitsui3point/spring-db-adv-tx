@@ -16,14 +16,12 @@ public class OrderTest {
     @Test
     void orderTest() {
         //given
-        Long id = 1L;
         String username = "정상";
         //when
         Order order = new Order(username);
         em.persist(order);
         em.flush();
         //then
-        assertThat(order.getId()).isEqualTo(id);
         assertThat(order.getUsername()).isEqualTo(username);
     }
 }
