@@ -28,6 +28,13 @@ public class MemberService {
         );
     }
 
+    @Transactional
+    public void joinV1_OnOnOn(String username) {
+        join(username,
+                member -> memberRepository.saveTx(member),
+                logInfo -> logRepository.saveTx(logInfo));
+    }
+
     private void join(String username,
                       Callback<Member> memberRepositoryCallback,
                       Callback<Log> logRepositoryCallback) {
