@@ -13,6 +13,7 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     private final LogRepository logRepository;
+
     public void joinV1_OffOnOn(String username) {
         join(username,
                 member -> memberRepository.saveTx(member),
@@ -34,6 +35,7 @@ public class MemberService {
                 member -> memberRepository.saveTx(member),
                 logInfo -> logRepository.saveTx(logInfo));
     }
+
 
     private void join(String username,
                       Callback<Member> memberRepositoryCallback,
