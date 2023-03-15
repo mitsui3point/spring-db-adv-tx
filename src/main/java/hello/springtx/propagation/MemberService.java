@@ -3,6 +3,7 @@ package hello.springtx.propagation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -12,17 +13,37 @@ public class MemberService {
     private final MemberRepository memberRepository;
 
     private final LogRepository logRepository;
-    public void joinNoTxV1(String username) {
+    public void joinV1_OffOnOn(String username) {
+        join(username,
+                member -> memberRepository.saveTx(member),
+                logInfo -> logRepository.saveTx(logInfo)
+        );
+    }
+
+    @Transactional
+    public void joinV1_OnOffOff(String username) {
+        join(username,
+                member -> memberRepository.saveNoTx(member),
+                logInfo -> logRepository.saveNoTx(logInfo)
+        );
+    }
+
+    private void join(String username,
+                      Callback<Member> memberRepositoryCallback,
+                      Callback<Log> logRepositoryCallback) {
         Member member = new Member(username);
         Log logInfo = new Log(username);
 
         log.info("== memberRepository 시작 ==");
-        memberRepository.saveTx(member);
+        memberRepositoryCallback.callback(member);
         log.info("== memberRepository 종료 ==");
 
         log.info("== logRepository 시작 ==");
-        logRepository.saveTx(logInfo);
+        logRepositoryCallback.callback(logInfo);
         log.info("== logRepository 종료 ==");
     }
 
+    private static interface Callback<T> {
+        void callback(T t);
+    }
 }

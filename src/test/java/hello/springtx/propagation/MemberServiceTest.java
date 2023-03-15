@@ -1,6 +1,5 @@
 package hello.springtx.propagation;
 
-import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -31,7 +30,7 @@ public class MemberServiceTest {
         String username = "outerTxOFF_success";
 
         //when
-        memberService.joinNoTxV1(username);
+        memberService.joinV1_OffOnOn(username);
         Optional<Member> actualMember = memberRepository.find(username);
         Optional<Log> actualLog = logRepository.find(username);
 
@@ -51,7 +50,7 @@ public class MemberServiceTest {
         String username = "outerTxOFF_fail" + LogRepository.LOG_EXCEPTION_MESSAGE;
 
         //when
-        assertThatThrownBy(() -> memberService.joinNoTxV1(username))
+        assertThatThrownBy(() -> memberService.joinV1_OffOnOn(username))
                 .isInstanceOf(RuntimeException.class);
 
         Optional<Member> actualMember = memberRepository.find(username);
@@ -61,4 +60,27 @@ public class MemberServiceTest {
         assertThat(actualMember).isPresent();
         assertThat(actualLog).isNotPresent();
     }
+
+    /**
+     * MemberService    @Transactional:ON
+     * MemberRepository @Transactional:OFF
+     * LogRepository    @Transactional:OFF
+     */
+    @Test
+    void singleTx() {
+        //given
+        String username = "singleTx";
+
+        //when
+        memberService.joinV1_OnOffOff(username);
+
+        Optional<Member> actualMember = memberRepository.find(username);
+        Optional<Log> actualLog = logRepository.find(username);
+
+        //then
+        assertThat(actualMember).isPresent();
+        assertThat(actualLog).isPresent();
+    }
+
+
 }
