@@ -24,6 +24,11 @@ public class LogRepository {
         save(logInfo);
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void saveTxRequiresNew(Log logInfo) {
+        save(logInfo);
+    }
+
     private void save(Log logInfo) {
         log.info("log 저장");
         em.persist(logInfo);

@@ -157,4 +157,25 @@ public class MemberServiceTest {
         assertThat(actualMember).isNotPresent();
         assertThat(actualLog).isNotPresent();
     }
+
+    /**
+     * MemberService    @Transactional:ON
+     * MemberRepository @Transactional:ON
+     * LogRepository    @Transactional:ON Exception
+     */
+    @Test
+    void recoverException_success() {
+        //given
+        String username = "recoverException_success" + LogRepository.LOG_EXCEPTION_MESSAGE;
+
+        //when
+        memberService.joinV2_OnOnOn_requiresNew(username);
+
+        Optional<Member> actualMember = memberRepository.find(username);
+        Optional<Log> actualLog = logRepository.find(username);
+
+        //then
+        assertThat(actualMember).isPresent();
+        assertThat(actualLog).isNotPresent();
+    }
 }
